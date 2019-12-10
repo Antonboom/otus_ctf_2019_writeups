@@ -8,7 +8,7 @@ https://ctf.school/challenges
 
 <a name="snake"></a>
 ## Snake
-#### Наша компания всегда пытается обойти любую защиту программ. Помоги нам разобраться с Питоном в этот раз
+#### Наша компания всегда пытается обойти любую защиту программ. Помоги нам разобраться с Питоном в этот раз!
 
 Что мы имеем? Файл task.pyc
 ```bash
@@ -223,7 +223,7 @@ final class MainActivity$onCreate$1 implements OnClickListener {
 Что-то куда-то выводим по клику, неинтересно.
 
 **MainActivity.java**
-```
+```java
 // ...
 
 public final class MainActivity extends AppCompatActivity {
@@ -334,7 +334,7 @@ final class MainActivityKt$a$1 extends Lambda implements Function1<Boolean, Stri
 Осталось найти использование всего этого дела и разобраться, что к чему...
 
 **MainActivityKt$a$1.java**
-```
+```java
 // ...
 
 public final class MainActivityKt {
@@ -577,28 +577,28 @@ Address	Type	Name
 использованием каких-то строковых функций, ну что ж...
 
 Посмотрим на граф вызовов:
-[call_graph.png](img/call_graph.png)
+![call_graph.png](img/re/call_graph.png)
 
 Видим наш "flag{simple}}", но дальнейшего использования вроде бы нет:
-```text
+```asm
 .text:0000175b  lea 0x8a9(%rip),%rsi  # 0x0000200b
 ```
 
 Видим вывод на экран приглашения "0x201c	Hello! Enter flag to check:":
-```text
+```asm
 .text:00001776  lea 0x89f(%rip),%rsi   # 0x0000201c
 .text:0000177d  lea 0x293c(%rip),%rdi  # 0x000040c0 <_ZSt4cout>
 .text:00001784  callq 0x00001080
  ```
  
 Видим ввод флага:
-```text
+```asm
 .text:0000179c  lea 0x2a3d(%rip),%rdi  # 0x000041e0 <_ZSt3cin>
 .text:000017a3  callq 0x000010c0
 ```
 
 Видим вызов строковой функции и дальнейшую проверку результата (**test**):
-```text
+```asm
 .text:000017c2  callq 0x000016c0 <_Z5checkNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE>
 .text:000017c7  mov %eax,%ebx
 .text:000017c9  lea -0x30(%rbp),%rax
@@ -608,14 +608,14 @@ Address	Type	Name
 ```
 
 И затем "прыжок" на вывод "0x2039	Nice! Correct!":
-```text
+```asm
 .text:000017d9  lea 0x859(%rip),%rsi # 0x00002039
 .text:000017e0  lea 0x28d9(%rip),%rdi # 0x000040c0 <_ZSt4cout>
 .text:000017e7  callq 0x00001080
 ```
 
 или на вывод "0x2048	Nope! Wrong!":
-```text          
+```asm          
 .text:00001803  lea 0x83e(%rip),%rsi # 0x00002048
 .text:0000180a  lea 0x28af(%rip),%rdi # 0x000040c0 <_ZSt4cout>
 .text:00001811  callq 0x00001080
@@ -624,12 +624,12 @@ Address	Type	Name
 Общая картина программы более-менее ясна.
 
 Скорее всего конструирование флага происходит при вызове
-```text
+```asm
 .text:000017c2  callq 0x000016c0 <_Z5checkNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE>
 ``` 
 
 Посмотрим эту функцию подробнее:
-[call_graph1.png](img/call_graph1.png)
+![call_graph1.png](img/re/call_graph1.png)
 
 Видим вызов какой-то функции и сравнение с 0x19 (25):
 ```text
@@ -642,17 +642,17 @@ Address	Type	Name
 И при положительном результате вызов **_Z6check1NSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE**.
 
 Перейдём к ней:
-[call_graph2.png](img/call_graph2.png)
+![call_graph2.png](img/re/call_graph2.png)
 
 Много букв, сложно, но, мы видим фигурирование флага и вызов следующей строковой функции
-```text
+```asm
 .text:00001636  lea    0x9c8(%rip),%rsi        # 0x00002005
 .text:0000163d  mov    %rax,%rdi
 .text:00001640  callq  0x00001907 <_ZSteqIcSt11char_traitsIcESaIcEEbRKNSt7__cxx1112basic_stringIT_T0_T1_EEPKS5_>
 ```
 
 Напомню, что 0x00002005 - это как раз наш кусочек
-```text
+```asm
 .rodata:00002005  0x66 'f'
 .rodata:00002006  0x6c 'l'
 .rodata:00002007  0x61 'a'
@@ -679,7 +679,7 @@ $ python $RETDEC_INSTALL_DIR/bin/retdec-decompiler.py task.txt
 ```
 
 Получаем task.c, не идеальный код, но жить можно:
-```с
+```c
 // ...
 // Address range: 0x173e - 0x18a9
 int main(int argc, char ** argv) {
@@ -1005,7 +1005,7 @@ flag{
 ```
 
 Структура флага ясна, декодируем с помощью Python:
-```
+```python
 print(chr(int('66', 16)), chr(int('65', 16)), chr(int('65', 16)), chr(int('66', 16)))  # f e e f  
 print(chr(int('32', 16)), chr(int('37', 16)), chr(int('31', 16)), chr(int('5f', 16)))  # 2 7 1 _
 print(chr(int('73', 16)), chr(int('34', 16)), chr(int('31', 16)), chr(int('6b', 16)))  # s 4 1 k  
@@ -1013,18 +1013,20 @@ print(chr(int('65', 16)), chr(int('65', 16)), chr(int('65', 16)), chr(int('5f', 
 ```
 
 И слагаемые (последние символы пятерок)
-```
+```python
 print(list(map(chr, [97, 97, 99, 125])))  # ['a', 'a', 'c', '}']
 ```
 
 Получаем ключ: **flag{feefa271_as41kceee_}** - 25 символов, похоже на правду:smiling_imp:. <br>
 Вводим в систему - неверно!
 
+:cry:
+
 В чем может быть ошибка?...
 
 Давайте ещё раз посмотрим на декодированные строки. <br>
 Кажется, мы где-то это видели... Так в строковой же секции ассемблера!                                                                                                                             
-```
+```text
 0x1296	_eeef
 0x1351	k14sf
 0x145c	_172f
